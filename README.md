@@ -2,6 +2,14 @@
 
 Website komunitas Discord **Mystral Academy** yang dibuat sebagai pusat identitas, informasi, dan aktivitas komunitas. Situs ini menampilkan profil komunitas dengan nuansa akademi fantasi yang rapi, hangat, dan modern.
 
+## Live Website
+
+Kunjungi website Mystral Academy di:
+
+```text
+https://mystralacademy.website/
+```
+
 ## Tentang Proyek
 
 Mystral Academy adalah landing page interaktif untuk memperkenalkan komunitas, founder, staff, event, rules, leaderboard, rekrutmen, bot, galeri, dan komentar member dalam satu pengalaman web yang ringan.
