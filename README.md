@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mystral Academy
 
-## Getting Started
+Website komunitas Discord **Mystral Academy** yang dibuat sebagai pusat identitas, informasi, dan aktivitas komunitas. Situs ini menampilkan profil komunitas dengan nuansa akademi fantasi yang rapi, hangat, dan modern.
 
-First, run the development server:
+## Tentang Proyek
+
+Mystral Academy adalah landing page interaktif untuk memperkenalkan komunitas, founder, staff, event, rules, leaderboard, rekrutmen, bot, galeri, dan komentar member dalam satu pengalaman web yang ringan.
+
+Fokus utamanya adalah membuat pengunjung langsung paham karakter komunitas: aesthetic, aktif, ramah untuk member baru, dan punya sistem yang tertata.
+
+## Fitur Utama
+
+- Hero section dengan preview komunitas Discord.
+- Navigasi responsif untuk desktop dan mobile.
+- Mode tema pastel dan dark.
+- Section founder, staff, dan struktur komunitas.
+- Riwayat event lengkap dengan poster dan dokumentasi.
+- Informasi donasi, leaderboard, rules, recruitment, bot, FAQ, dan galeri.
+- Komentar member berbasis local storage.
+- Build statis yang siap di-upload ke cPanel.
+
+## Tech Stack
+
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- Framer Motion
+- Lucide React
+
+## Menjalankan Project
+
+Install dependency:
+
+```bash
+npm install
+```
+
+Jalankan development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka browser ke:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:5173
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Build Production
 
-## Learn More
+Untuk membuat versi production:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Hasil build akan masuk ke folder:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```text
+dist/
+```
 
-## Deploy on Vercel
+## Deploy ke cPanel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Jalankan `npm run build`.
+2. ZIP semua isi folder `dist`, bukan folder `dist`-nya.
+3. Login ke cPanel.
+4. Buka **File Manager**.
+5. Masuk ke folder `public_html`.
+6. Upload ZIP hasil build.
+7. Extract di dalam `public_html`.
+8. Pastikan `index.html` dan folder `assets` berada langsung di `public_html`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Jika website dipasang di subfolder, misalnya `domain.com/academy`, ubah `vite.config.ts`:
+
+```ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  base: "/academy/",
+});
+```
+
+Setelah itu build ulang dan upload kembali isi `dist`.
+
+## Struktur Singkat
+
+```text
+src/
+  App.tsx        # Komponen utama website
+  main.tsx       # Entry point React
+public/
+  logo.png       # Logo utama
+  events/        # Asset event
+  founders/      # Foto founder/staff
+data/
+  comments.json  # Data komentar awal
+```
+
+## Catatan
+
+Project ini sebelumnya berasal dari setup Next.js, lalu disesuaikan menjadi aplikasi Vite React statis agar lebih mudah dideploy di hosting cPanel biasa.
