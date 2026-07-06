@@ -1,4 +1,4 @@
-import { useEffect, useState, type ImgHTMLAttributes, type ReactNode } from "react";
+import { useEffect, useState, useRef, type ImgHTMLAttributes, type ReactNode } from "react";
 import {
   Menu,
   X,
@@ -37,9 +37,15 @@ import {
   Clock3,
   CircleHelp,
   GitBranch,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  SkipForward,
+  Music,
 } from "lucide-react";
 
-import { motion } from "framer-motion";
+import { motion, useInView, animate } from "framer-motion";
 
 const discordUrl = "https://discord.gg/mystralacademy";
 const tiktokUrl = "https://www.tiktok.com/@mystralacademy";
@@ -90,6 +96,58 @@ function Image({ fill, className = "", sizes: _sizes, ...props }: ViteImageProps
       className={`${fill ? "absolute inset-0 h-full w-full object-cover " : ""}${className}`}
     />
   );
+}
+
+function parseValue(valStr: string) {
+  const match = valStr.match(/^([0-9.,]+)(.*)$/);
+  if (!match) return { numericValue: 0, suffix: valStr, decimals: 0, separator: "." };
+
+  const rawNum = match[1];
+  const suffix = match[2];
+
+  const isCommaDecimal = rawNum.includes(",") && !rawNum.includes(".");
+  const normalizedNum = isCommaDecimal ? rawNum.replace(",", ".") : rawNum;
+  const numericValue = parseFloat(normalizedNum) || 0;
+
+  const parts = normalizedNum.split(".");
+  const decimals = parts.length > 1 ? parts[1].length : 0;
+
+  return {
+    numericValue,
+    suffix,
+    decimals,
+    separator: isCommaDecimal ? "," : ".",
+  };
+}
+
+function AnimatedCounter({ value, duration = 2 }: { value: string; duration?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+
+  useEffect(() => {
+    if (!inView) return;
+
+    const node = ref.current;
+    if (!node) return;
+
+    const { numericValue, suffix, decimals, separator } = parseValue(value);
+
+    const controls = animate(0, numericValue, {
+      duration: duration,
+      ease: "easeOut",
+      onUpdate(latest) {
+        let formatted = latest.toFixed(decimals);
+        if (separator === ",") {
+          formatted = formatted.replace(".", ",");
+        }
+        node.textContent = formatted + suffix;
+      },
+    });
+
+    return () => controls.stop();
+  }, [value, inView, duration]);
+
+  return <span ref={ref}>{value}</span>;
 }
 
 /* Nav items — main (selalu tampil di desktop) */
@@ -194,10 +252,10 @@ const featureAccents = [
 ];
 
 const stats = [
-  { label: "Members", value: "5,7K", icon: Users },
+  { label: "Members", value: "6,5K", icon: Users },
   { label: "Roles", value: "190+", icon: Crown },
   { label: "Online Daily", value: "1.4K+", icon: Zap },
-  { label: "Events", value: "120+", icon: Calendar },
+  { label: "Events", value: "30+", icon: Calendar },
 ];
 
 const announcements = [
@@ -427,8 +485,13 @@ const faqItems = [
 
 const staff: StaffMember[] = [
   {
+    name: "Arin",
+    role: "Archduke",
+    color: "from-purple-300 to-pink-300",
+  },
+  {
     name: "Ramzy",
-    role: ["Founder", "Archduke"],
+    role: "Founder",
     color: "from-violet-300 to-fuchsia-400",
     avatar: "/founders/ramzy.jpeg",
   },
@@ -436,14 +499,14 @@ const staff: StaffMember[] = [
     name: "Cyizzie",
     role: ["Founder", "Archmagister", "Developer"],
     color: "from-rose-200 to-pink-300",
-    avatar: "/founders/cyizzie.jpg",
+    avatar: "/founders/cyizzie.png",
   },
   {
     name: "Bara",
     role: ["Founder", "Archmagister", "Developer"],
     color: "from-blue-300 to-indigo-400",
   },
-    {
+  {
     name: "Lanaa",
     role: ["Founder", "Sentinel"],
     color: "from-rose-200 to-pink-300",
@@ -458,11 +521,7 @@ const staff: StaffMember[] = [
     name: "Nniel",
     role: "Archmage",
     color: "from-purple-300 to-pink-300",
-  },
-  {
-    name: "Arin",
-    role: "Archmage",
-    color: "from-purple-300 to-pink-300",
+    avatar: "/founders/Nniel_Archmage.jpg",
   },
   {
     name: "Kairos",
@@ -470,88 +529,73 @@ const staff: StaffMember[] = [
     color: "from-blue-300 to-cyan-400",
   },
   {
-    name: "Jila",
-    role: ["Head Division", "Archivist"],
-    color: "from-amber-200 to-orange-300",
-    avatar: "/founders/jila.jpeg",
-  },
-  {
     name: "Irfanx",
     role: ["Head Division", "Sentinel"],
     color: "from-violet-200 to-fuchsia-300",
+  },
+  {
+    name: "Bami",
+    role: ["Head Division", "Arcane Ally"],
+    color: "from-purple-200 to-fuchsia-300",
   },
   {
     name: "Chloee",
     role: "Sentinel",
     color: "from-pink-200 to-rose-300",
   },
-
-  { name: "Curryy", role: "Lunaris", color: "from-pink-300 to-violet-300" },
   {
-    name: "wdym, juu",
-    role: "Lunaris",
-    color: "from-violet-200 to-indigo-300",
-  },
-  {
-    name: "Bami",
-    role: "Lunaris",
-    color: "from-purple-200 to-fuchsia-300",
-  },
-  {
-    name: "Irish",
-    role: "Lunaris",
-    color: "from-sky-200 to-cyan-300",
-  },
-  {
-    name: "AltáirCàlm",
-    role: "Lunaris",
-    color: "from-indigo-200 to-violet-300",
-  },
-  {
-    name: "Nici",
-    role: "Lunaris",
-    color: "from-orange-200 to-pink-300",
-  },
-  {
-    name: "Rsyaa",
-    role: "Lunaris",
-    color: "from-yellow-200 to-orange-300",
-  },
-  {
-    name: "Hiro",
-    role: "Lunaris",
-    color: "from-cyan-200 to-sky-300",
+    name: "Juu",
+    role: "Sentinel",
+    color: "from-pink-200 to-rose-300",
   },
   {
     name: "Vicay",
-    role: "Lunaris",
+    role: "Arcane Ally",
     color: "from-purple-300 to-indigo-400",
   },
-  { name: "Kai", role: "Lunaris", color: "from-fuchsia-200 to-pink-300" },
-  { name: "Lana", role: "Lunaris", color: "from-rose-200 to-pink-300" },
   {
-    name: "Julius Caesar",
-    role: "Artemist",
-    color: "from-orange-200 to-amber-300",
-  },
-  { name: "Pici", role: "Artemist", color: "from-pink-200 to-orange-300" },
-  { name: "Stuffed", role: "Artemist", color: "from-violet-200 to-pink-300" },
-  { name: "Vilen", role: "Artemist", color: "from-purple-200 to-violet-300" },
-  { name: "Scellan", role: "Artisant", color: "from-fuchsia-300 to-pink-400" },
-  {
-    name: "Mintea",
+    name: "Nnael",
     role: "Arcane Ally",
     color: "from-emerald-200 to-cyan-300",
+  },
+
+  {
+    name: "Lana",
+    role: "Artemist",
+    color: "from-rose-200 to-pink-300",
+    avatar: "/founders/lana-lunaris.jpg",
+  },
+  {
+    name: "Vilen",
+    role: "Artemist",
+    color: "from-purple-200 to-violet-300",
+    avatar: "/founders/vilen-artemis_.jpg",
+  },
+  {
+    name: "Scellan",
+    role: "Artemist",
+    color: "from-fuchsia-300 to-pink-400",
+    avatar: "/founders/scellan_artisant.jpg",
+  },
+  {
+    name: "Vallz",
+    role: "Artemist",
+    color: "from-fuchsia-300 to-pink-400",
+  },
+  {
+    name: "Chen",
+    role: "Artemist",
+    color: "from-purple-200 to-violet-300",
   },
 ];
 
 const founders: Founder[] = [
   {
     name: "Ramzy",
-    role: "Founder • Archduke",
+    role: "Founder",
     desc: "Menentukan arah besar, konsep, tema, dan identitas utama Mystral Academy.",
     color: "from-violet-300 to-fuchsia-400",
-    banner: "from-violet-900 via-purple-800 to-fuchsia-900",
+    banner: "from-violet-500 via-purple-600 to-fuchsia-500",
     bio: "Founder dan owner Mystral Academy. Suka bikin komunitas yang rapi, punya vibes sendiri, dan kerasa kayak rumah kedua buat semua member.",
     discord: "couldberamzy",
     tiktok: "@couldberamzy",
@@ -562,18 +606,18 @@ const founders: Founder[] = [
     role: "Founder • Archmagister",
     desc: "Membangun sistem server, bot Cyza, dan pengalaman komunitas yang nyaman dan rapi.",
     color: "from-pink-300 to-violet-400",
-    banner: "from-pink-900 via-rose-800 to-violet-900",
+    banner: "from-fuchsia-500 via-pink-500 to-rose-500",
     bio: "Co-founder sekaligus developer bot Cyza. Bantu bentuk sistem, nuansa, dan semua hal teknis yang bikin server ini berjalan rapi.",
     discord: "2cyi",
     tiktok: "@chyzee26",
-    avatar: "/founders/cyizzie.jpg",
+    avatar: "/founders/cyizzie.png",
   },
   {
     name: "Bara",
     role: "Founder • Archmagister",
     desc: "Membantu pengelolaan komunitas dan menjaga jalannya sistem utama server.",
     color: "from-blue-300 to-indigo-400",
-    banner: "from-blue-900 via-indigo-800 to-blue-900",
+    banner: "from-blue-500 via-indigo-500 to-cyan-500",
     bio: "Bagian dari tim inti yang jaga server tetap berjalan rapi. Banyak hal penting yang dia handle di balik layar.",
     discord: "bara",
   },
@@ -582,7 +626,7 @@ const founders: Founder[] = [
     role: "Founder • Sentinel",
     desc: "Membantu membentuk karakter komunitas yang hangat, ramah, dan member-friendly.",
     color: "from-rose-200 to-pink-400",
-    banner: "from-rose-900 via-pink-800 to-rose-900",
+    banner: "from-rose-500 via-pink-500 to-rose-400",
     bio: "Bagian dari tim yang bikin komunitas ini kerasa hangat dan nyaman buat semua orang. Selalu ada buat member yang baru masuk.",
     discord: "alyciawy",
     avatar: "/founders/lana.webp",
@@ -592,7 +636,7 @@ const founders: Founder[] = [
     role: "Founder • Archmage",
     desc: "Mendukung pengawasan komunitas, kenyamanan member, dan koordinasi staff.",
     color: "from-cyan-300 to-blue-400",
-    banner: "from-cyan-900 via-blue-800 to-indigo-900",
+    banner: "from-cyan-500 via-blue-500 to-indigo-500",
     bio: "Membantu pengawasan dan koordinasi komunitas. Selalu siap kalau ada yang butuh sesuatu atau punya pertanyaan.",
     discord: "valentothemoon.",
     tiktok: "@valent.0787",
@@ -600,15 +644,6 @@ const founders: Founder[] = [
 ];
 
 const staffPositions = [
-  {
-    id: "developer",
-    icon: Code2,
-    title: "Developer",
-    subtitle: "Technical Development",
-    color: "from-blue-400 to-indigo-500",
-    desc: "Bikin bot, website, atau tools yang mendukung kebutuhan komunitas dan event akademi.",
-    tags: ["Bot Discord", "Web Dev", "Tools"],
-  },
   {
     id: "artemis",
     icon: Calendar,
@@ -619,6 +654,15 @@ const staffPositions = [
     tags: ["Event Planning", "Koordinasi", "Evaluasi"],
   },
   {
+    id: "sentinel",
+    icon: BadgeCheck,
+    title: "Sentinel",
+    subtitle: "Server Guardian",
+    color: "from-sky-400 to-blue-500",
+    desc: "Memantau chat & voice dari pelanggaran, membantu member baru, serta meredam keributan agar server tetap kondusif.",
+    tags: ["Moderator", "Chat & Voice", "Support"],
+  },
+  {
     id: "arcane-ally",
     icon: Handshake,
     title: "Arcane Ally",
@@ -626,24 +670,6 @@ const staffPositions = [
     color: "from-emerald-400 to-teal-500",
     desc: "Kelola kerjasama partnership dan jaga hubungan baik antar server partner.",
     tags: ["Partnership", "Kolaborasi", "Relasi"],
-  },
-  {
-    id: "visionary",
-    icon: Camera,
-    title: "Visionary",
-    subtitle: "Editor Video",
-    color: "from-orange-400 to-amber-500",
-    desc: "Kembangkan ide konten biar makin menarik, terus edit video dan kebutuhan visual komunitas.",
-    tags: ["Video Editing", "Konten", "Visual"],
-  },
-  {
-    id: "archivist",
-    icon: Megaphone,
-    title: "Archivist",
-    subtitle: "Social Management",
-    color: "from-violet-400 to-purple-500",
-    desc: "Buat konten sesuai branding Mystral, unggah di TikTok, dan manage sosmed komunitas.",
-    tags: ["TikTok", "Konten", "Sosmed"],
   },
 ];
 
@@ -730,16 +756,16 @@ const bots = [
     desc: "Mencatat aktivitas role secara otomatis agar perubahan penting tetap mudah dipantau staff.",
     creator: null,
     creatorRole: "Official Bot",
-    color: "from-rose-400 to-pink-500",
-    glow: "rgba(251,113,133,.35)",
-  },
-  {
-    name: "Roxy Lyrielle Sylvestra",
-    desc: "Membantu partnership, reminder internal staff Lunaris, dan leaderboard aktivitas member.",
-    creator: null,
-    creatorRole: "Official Bot",
     color: "from-emerald-400 to-teal-500",
     glow: "rgba(52,211,153,.35)",
+  },
+  {
+    name: "Relovie",
+    desc: "Bot bertema hubungan dengan sistem RPG cinta untuk berpacaran, berkencan (date), menikah, bercerai (divorce), serta dilengkapi dengan mini game interaktif.",
+    creator: null,
+    creatorRole: "Official Bot",
+    color: "from-pink-400 to-rose-500",
+    glow: "rgba(244,63,94,.35)",
   },
 ];
 
@@ -753,11 +779,11 @@ const leaderboardData = {
     { rank: 5, name: "aethrayn", amount: "Rp 30.000" },
   ],
   topChat: [
-    { rank: 1, name: "jia midnιтє 𝗯𝗯𝗯𝗯𝚀𝚌𝚌𝚌 🪹🍧🪄✨🔮🪷" },
-    { rank: 2, name: "iann`#AboutSampean1945" },
-    { rank: 3, name: "The (V)one and Only" },
-    { rank: 4, name: "I F A Backburner" },
-    { rank: 5, name: "Ayell | bayi Irishh≥̂^\u2022 ˕ \u2022 ྀ≤̂" },
+    { rank: 1, name: "Jason gengster cina" },
+    { rank: 2, name: "kal gengster filipina" },
+    { rank: 3, name: "nanann gengster germany" },
+    { rank: 4, name: "yuvi gengster iran" },
+    { rank: 5, name: "Vɪᴄᴀʏ Wdym" },
   ],
   topVoice: [
     { rank: 1, name: "Reyeon" },
@@ -1106,11 +1132,10 @@ function Topbar({
                   <a
                     href={item.href}
                     aria-current={isActive ? "page" : undefined}
-                    className={`relative rounded-xl px-3 py-2 text-xs font-black transition ${
-                      isActive
-                        ? "text-[var(--text)]"
-                        : "text-[var(--muted)] hover:text-[var(--text)]"
-                    }`}
+                    className={`relative rounded-xl px-3 py-2 text-xs font-black transition ${isActive
+                      ? "text-[var(--text)]"
+                      : "text-[var(--muted)] hover:text-[var(--text)]"
+                      }`}
                   >
                     {item.label}
                     {isActive && (
@@ -1126,19 +1151,17 @@ function Topbar({
                           setAboutOpen((v) => !v);
                           setMoreOpen(false);
                         }}
-                        className={`flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-black transition ${
-                          aboutActive || aboutOpen
-                            ? "text-[var(--text)]"
-                            : "text-[var(--muted)] hover:text-[var(--text)]"
-                        }`}
+                        className={`flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-black transition ${aboutActive || aboutOpen
+                          ? "text-[var(--text)]"
+                          : "text-[var(--muted)] hover:text-[var(--text)]"
+                          }`}
                         aria-expanded={aboutOpen}
                       >
                         Tentang Kami
                         <ChevronDown
                           size={12}
-                          className={`transition-transform duration-200 ${
-                            aboutOpen ? "rotate-180" : ""
-                          }`}
+                          className={`transition-transform duration-200 ${aboutOpen ? "rotate-180" : ""
+                            }`}
                         />
                       </button>
 
@@ -1164,11 +1187,10 @@ function Topbar({
                                 aria-current={
                                   aboutItemActive ? "page" : undefined
                                 }
-                                className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-black transition ${
-                                  aboutItemActive
-                                    ? "bg-white/10 text-[var(--text)]"
-                                    : "text-[var(--muted)] hover:bg-white/10 hover:text-[var(--text)]"
-                                }`}
+                                className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-black transition ${aboutItemActive
+                                  ? "bg-white/10 text-[var(--text)]"
+                                  : "text-[var(--muted)] hover:bg-white/10 hover:text-[var(--text)]"
+                                  }`}
                               >
                                 <Icon
                                   size={15}
@@ -1198,19 +1220,17 @@ function Topbar({
                   setMoreOpen((v) => !v);
                   setAboutOpen(false);
                 }}
-                className={`flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-black transition ${
-                  moreActive || moreOpen
-                    ? "text-[var(--text)]"
-                    : "text-[var(--muted)] hover:text-[var(--text)]"
-                }`}
+                className={`flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-black transition ${moreActive || moreOpen
+                  ? "text-[var(--text)]"
+                  : "text-[var(--muted)] hover:text-[var(--text)]"
+                  }`}
                 aria-expanded={moreOpen}
               >
                 Lainnya
                 <ChevronDown
                   size={12}
-                  className={`transition-transform duration-200 ${
-                    moreOpen ? "rotate-180" : ""
-                  }`}
+                  className={`transition-transform duration-200 ${moreOpen ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -1233,11 +1253,10 @@ function Topbar({
                         href={item.href}
                         onClick={() => setMoreOpen(false)}
                         aria-current={isActive ? "page" : undefined}
-                        className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-black transition ${
-                          isActive
-                            ? "bg-white/10 text-[var(--text)]"
-                            : "text-[var(--muted)] hover:bg-white/10 hover:text-[var(--text)]"
-                        }`}
+                        className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-black transition ${isActive
+                          ? "bg-white/10 text-[var(--text)]"
+                          : "text-[var(--muted)] hover:bg-white/10 hover:text-[var(--text)]"
+                          }`}
                       >
                         <Icon
                           size={15}
@@ -1285,67 +1304,86 @@ function Topbar({
       </header>
 
       {open && (
-        <div className="fixed inset-0 z-[80] bg-black/45 backdrop-blur-sm lg:hidden">
-          <aside className="ml-auto h-full w-[86%] max-w-sm overflow-y-auto border-l border-[var(--border)] bg-[var(--bg)] p-5 shadow-[0_0_80px_rgba(0,0,0,.45)]">
+        <motion.div
+          className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm lg:hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={() => setOpen(false)}
+        >
+          <motion.aside
+            className="ml-auto h-full w-[88%] max-w-sm overflow-y-auto border-l border-[var(--border)] bg-[var(--bg)] p-5 shadow-[0_0_80px_rgba(0,0,0,.45)]"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="mb-8 flex items-center justify-between">
               <Logo />
               <button
                 onClick={() => setOpen(false)}
-                className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--border)] bg-white/10 text-[var(--text)]"
+                className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--border)] bg-white/10 text-[var(--text)] transition hover:bg-white/20"
                 aria-label="Tutup menu"
               >
                 <X />
               </button>
             </div>
 
-            <div className="space-y-2">
-              {nav.map((item) => {
+            <div className="space-y-1.5">
+              {nav.map((item, i) => {
                 const Icon = navIcons[item.label] || Sparkles;
                 const isActive = activeSection === item.href;
                 return (
-                  <a
+                  <motion.a
                     key={item.label}
                     href={item.href}
                     onClick={() => setOpen(false)}
                     aria-current={isActive ? "page" : undefined}
-                    className={`flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-black transition ${
-                      isActive
-                        ? "bg-white/10 text-[var(--text)]"
-                        : "text-[var(--muted)] hover:bg-white/10 hover:text-[var(--text)]"
-                    }`}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.28, delay: 0.05 + i * 0.03, ease: [0.22, 1, 0.36, 1] }}
+                    className={`flex items-center justify-between gap-3 rounded-2xl px-4 py-3.5 text-sm font-black transition ${isActive
+                      ? "bg-white/10 text-[var(--text)]"
+                      : "text-[var(--muted)] hover:bg-white/10 hover:text-[var(--text)] active:bg-white/15"
+                      }`}
                   >
                     <span className="flex min-w-0 items-center gap-3">
-                      <Icon
-                        size={17}
-                        className="text-[var(--accent2)]"
-                      />
+                      <Icon size={17} className={isActive ? "text-[var(--accent2)]" : "text-[var(--soft)]"} />
                       {item.label}
                     </span>
                     {isActive && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--soft)]" />
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--soft)]" />
                     )}
-                  </a>
+                  </motion.a>
                 );
               })}
             </div>
 
-            <button
-              onClick={() => setTheme(theme === "dark" ? "pastel" : "dark")}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white/10 px-5 py-4 text-sm font-black text-[var(--text)]"
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.35 }}
+              className="mt-5 space-y-2"
             >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-              Ganti Theme
-            </button>
+              <button
+                onClick={() => setTheme(theme === "dark" ? "pastel" : "dark")}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white/10 px-5 py-4 text-sm font-black text-[var(--text)] transition hover:bg-white/15 active:scale-[0.98]"
+              >
+                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                Ganti Theme
+              </button>
 
-            <a
-              href={discordUrl}
-              className="mt-3 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-700 px-5 py-4 text-sm font-black text-white"
-            >
-              <Gamepad2 size={18} />
-              Gabung Discord
-            </a>
-          </aside>
-        </div>
+              <a
+                href={discordUrl}
+                className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-700 px-5 py-4 text-sm font-black text-white shadow-[0_0_24px_rgba(139,92,246,.3)] transition hover:opacity-90 active:scale-[0.98]"
+              >
+                <Gamepad2 size={18} />
+                Gabung Discord
+              </a>
+            </motion.div>
+          </motion.aside>
+        </motion.div>
       )}
     </>
   );
@@ -1362,22 +1400,40 @@ function SectionTitle({
 }) {
   return (
     <motion.div
-      className="mx-auto mb-10 max-w-3xl text-center"
-      initial={{ opacity: 0, y: 24 }}
+      className="mx-auto mb-10 max-w-3xl px-2 text-center"
+      initial={{ opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
     >
-      <p className="mb-3 text-xs font-black uppercase tracking-[0.35em] text-[var(--soft)]">
+      <motion.p
+        className="mb-3 text-xs font-black uppercase tracking-[0.35em] text-[var(--soft)]"
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.45, delay: 0.05, ease: "easeOut" }}
+      >
         {eyebrow}
-      </p>
-      <h2 className="font-serif text-3xl font-black leading-tight text-[var(--text)] md:text-5xl">
+      </motion.p>
+      <motion.h2
+        className="font-serif text-3xl font-black leading-tight text-[var(--text)] md:text-5xl"
+        initial={{ opacity: 0, y: 14 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+      >
         {title}
-      </h2>
+      </motion.h2>
       {desc && (
-        <p className="mt-4 text-sm leading-7 text-[var(--muted)] md:text-base">
+        <motion.p
+          className="mt-4 px-2 text-sm leading-7 text-[var(--muted)] md:text-base"
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+        >
           {desc}
-        </p>
+        </motion.p>
       )}
     </motion.div>
   );
@@ -1444,7 +1500,7 @@ function HeroMockup() {
                   "Ramzy",
                   "Welcome to Mystral Academy. Jangan lupa baca rules ya!",
                 ],
-                ["cyizzie", "Yuk kenalan di general chat, semua welcome."],
+                ["Cyizzie", "Yuk kenalan di general chat, semua welcome."],
                 ["Lana", "Event minggu ini bakal seru, stay tune!"],
               ].map(([name, text]) => (
                 <div key={name} className="mb-3 flex gap-2 sm:mb-4 sm:gap-3">
@@ -1474,83 +1530,122 @@ function Hero() {
   return (
     <section
       id="home"
-      className="relative overflow-hidden px-4 pb-10 pt-[104px] sm:pt-[96px] lg:px-10 lg:pt-[84px]"
+      className="relative overflow-hidden px-4 pb-12 pt-[80px] sm:pt-[80px] lg:px-10 lg:pt-[80px]"
     >
+      {/* Animated background orbs */}
+      <div className="pointer-events-none absolute -left-20 top-20 h-72 w-72 animate-pulse-glow rounded-full bg-violet-600/20 blur-[90px] sm:h-96 sm:w-96" />
+      <div className="pointer-events-none absolute -right-16 bottom-10 h-64 w-64 animate-pulse-glow rounded-full bg-fuchsia-500/15 blur-[80px]" style={{ animationDelay: '1.2s' }} />
+      <div className="pointer-events-none absolute left-1/2 top-1/3 h-48 w-48 -translate-x-1/2 rounded-full bg-indigo-500/10 blur-[60px]" />
+
       <div className="mx-auto grid max-w-7xl gap-8 lg:min-h-[600px] lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <div>
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white/10 px-4 py-2 text-xs font-black text-[var(--soft)] backdrop-blur-xl">
-            <Sparkles size={15} />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-5 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white/10 px-4 py-2 text-xs font-black text-[var(--soft)] backdrop-blur-xl"
+          >
+            <Sparkles size={15} className="animate-pulse-glow" />
             Discord Community
-          </div>
+          </motion.div>
 
-          <h1 className="max-w-3xl font-serif text-6xl font-black leading-[0.92] tracking-tight text-[var(--text)] md:text-8xl">
+          <motion.h1
+            className="max-w-3xl font-serif text-5xl font-black leading-[0.9] tracking-tight text-[var(--text)] sm:text-6xl md:text-8xl"
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          >
             Mystral
             <span className="block bg-gradient-to-r from-violet-400 via-purple-400 to-[#f4b47b] bg-clip-text text-transparent">
               Academy
             </span>
-          </h1>
+          </motion.h1>
 
-          <p className="mt-6 max-w-xl text-base leading-8 text-[var(--muted)] md:text-lg">
+          <motion.p
+            className="mt-5 max-w-xl text-sm leading-7 text-[var(--muted)] sm:mt-6 sm:text-base md:text-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.22, ease: "easeOut" }}
+          >
             Komunitas Discord yang hangat, rapi, aesthetic, dan penuh aktivitas.
             Temukan teman baru, ikut event, dapatkan role eksklusif, dan jadi
             bagian dari keluarga Mystral Academy.
-          </p>
+          </motion.p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <motion.div
+            className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.32, ease: "easeOut" }}
+          >
             <a
               href={discordUrl}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-700 px-6 py-4 text-sm font-black text-white shadow-[0_0_40px_rgba(139,92,246,.35)] transition hover:scale-[1.03]"
+              className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-700 px-6 py-4 text-sm font-black text-white shadow-[0_0_40px_rgba(139,92,246,.35)] transition hover:scale-[1.04] hover:shadow-[0_0_50px_rgba(139,92,246,.5)] active:scale-[0.98]"
             >
-              <Send size={18} />
+              <Send size={18} className="transition group-hover:translate-x-0.5" />
               Gabung Sekarang
             </a>
             <a
               href="#features"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white/10 px-6 py-4 text-sm font-black text-[var(--text)] backdrop-blur-xl transition hover:bg-white/15"
+              className="group inline-flex items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white/10 px-6 py-4 text-sm font-black text-[var(--text)] backdrop-blur-xl transition hover:bg-white/15 active:scale-[0.98]"
             >
               Lihat Fitur
-              <ArrowRight size={18} />
+              <ArrowRight size={18} className="transition group-hover:translate-x-1" />
             </a>
-          </div>
+          </motion.div>
 
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <motion.div
+            className="mt-6 flex flex-wrap items-center gap-3 sm:mt-8 sm:gap-4"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.44, ease: "easeOut" }}
+          >
             <div className="flex -space-x-3">
               {founders.map((f) => (
                 <Avatar key={f.name} name={f.name} small />
               ))}
               <div className="grid h-8 w-14 place-items-center rounded-full bg-white/15 text-xs font-black text-[var(--text)] ring-2 ring-[var(--bg)]">
-                +5.7K
+                +6.5K
               </div>
             </div>
             <p className="text-sm font-bold text-[var(--muted)]">
               member aktif dan komunitas terus berkembang
             </p>
-          </div>
+          </motion.div>
         </div>
 
-        <HeroMockup />
+        <motion.div
+          initial={{ opacity: 0, x: 32, scale: 0.96 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          transition={{ duration: 0.7, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <HeroMockup />
+        </motion.div>
       </div>
 
-      <div className="mx-auto mt-8 grid max-w-7xl grid-cols-2 gap-x-4 gap-y-6 md:-mt-10 md:grid-cols-4 md:gap-3">
-        {stats.map((stat) => {
+      <div className="mx-auto mt-8 grid max-w-7xl grid-cols-2 gap-3 md:-mt-8 md:grid-cols-4">
+        {stats.map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <div
+            <motion.div
               key={stat.label}
-              className="flex min-h-[78px] items-center gap-2.5 rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] px-3 py-3 shadow-[0_8px_18px_rgba(0,0,0,.08)] sm:min-h-[92px] sm:gap-4 sm:rounded-[1.6rem] sm:px-5 sm:py-5 md:shadow-[0_12px_40px_rgba(0,0,0,.18)]"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+              className="flex min-h-[78px] items-center gap-2.5 rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] px-3 py-3 shadow-[0_8px_18px_rgba(0,0,0,.08)] transition hover:-translate-y-1 hover:border-violet-400/30 sm:min-h-[92px] sm:gap-4 sm:rounded-[1.6rem] sm:px-5 sm:py-5 md:shadow-[0_12px_40px_rgba(0,0,0,.18)]"
             >
               <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-500/15 text-[var(--soft)] sm:h-12 sm:w-12 sm:rounded-2xl">
                 <Icon size={16} className="sm:h-[18px] sm:w-[18px]" />
               </div>
               <div className="min-w-0">
                 <p className="text-lg font-black leading-none text-[var(--text)] sm:text-2xl">
-                  {stat.value}
+                  <AnimatedCounter value={stat.value} />
                 </p>
                 <p className="mt-1 truncate text-[9px] text-[var(--muted)] sm:text-xs">
                   {stat.label}
                 </p>
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>
@@ -1573,26 +1668,30 @@ function Features() {
             const Icon = f.icon;
             const accent = featureAccents[index % featureAccents.length];
             return (
-              <Card
+              <motion.div
                 key={f.title}
-                className="group relative min-h-[250px] overflow-hidden text-left transition hover:-translate-y-1 hover:border-violet-400/40"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.45, delay: index * 0.07, ease: [0.22, 1, 0.36, 1] }}
               >
-                <div
-                  className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${accent}`}
-                />
-                <div
-                  className={`mb-6 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br ${accent} text-white shadow-[0_12px_28px_rgba(15,23,42,.2)]`}
-                >
-                  <Icon size={25} />
-                </div>
-                <h3 className="text-lg font-black text-[var(--text)]">
-                  {f.title}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
-                  {f.desc}
-                </p>
-                <div className="mt-5 h-px w-16 bg-gradient-to-r from-[var(--soft)] to-transparent opacity-60" />
-              </Card>
+                <Card className="group relative min-h-[170px] h-full overflow-hidden text-left !p-5 transition hover:-translate-y-1.5 hover:border-violet-400/40 hover:shadow-[0_20px_60px_rgba(139,92,246,.15)]">
+                  <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent}`} />
+                  {/* Hover glow */}
+                  <div className="absolute inset-0 -z-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-[0.04]`} />
+                  </div>
+                  <div className={`mb-4 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${accent} text-white shadow-[0_8px_20px_rgba(15,23,42,.15)] transition group-hover:scale-110 group-hover:shadow-[0_12px_28px_rgba(139,92,246,.25)]`}>
+                    <Icon size={18} />
+                  </div>
+                  <h3 className="text-base font-black text-[var(--text)]">
+                    {f.title}
+                  </h3>
+                  <p className="mt-1.5 text-xs leading-5 text-[var(--muted)]">
+                    {f.desc}
+                  </p>
+                </Card>
+              </motion.div>
             );
           })}
         </div>
@@ -1663,7 +1762,13 @@ function AnnouncementPanel() {
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(124,92,255,.08),transparent_42%,rgba(20,184,166,.08))]" />
 
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <motion.div
+          className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        >
           <div>
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--soft)]">
               Live Announcement
@@ -1678,31 +1783,31 @@ function AnnouncementPanel() {
           </div>
 
           <div className="inline-flex w-fit items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-xs font-black text-[var(--muted)]">
-            <Bell size={15} className="text-[var(--soft)]" />
+            <Bell size={15} className="animate-pulse-glow text-[var(--soft)]" />
             Update board
           </div>
-        </div>
+        </motion.div>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          {announcements.map((item) => {
+          {announcements.map((item, i) => {
             const Icon = item.icon;
             return (
-              <a
+              <motion.a
                 key={item.title}
                 href={item.href}
                 target={item.href.startsWith("http") ? "_blank" : undefined}
                 rel={
                   item.href.startsWith("http") ? "noopener noreferrer" : undefined
                 }
-                className="group relative overflow-hidden rounded-[1.45rem] border border-[var(--border)] bg-[var(--card)] p-5 shadow-[0_16px_44px_rgba(15,23,42,.12)] transition hover:-translate-y-1 hover:border-violet-400/45"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.45, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                className="group relative overflow-hidden rounded-[1.45rem] border border-[var(--border)] bg-[var(--card)] p-5 shadow-[0_16px_44px_rgba(15,23,42,.12)] transition hover:-translate-y-1.5 hover:border-violet-400/45 hover:shadow-[0_24px_60px_rgba(139,92,246,.12)]"
               >
-                <div
-                  className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${item.color}`}
-                />
+                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${item.color}`} />
                 <div className="flex items-start justify-between gap-4">
-                  <div
-                    className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${item.color} text-white shadow-[0_10px_26px_rgba(15,23,42,.18)]`}
-                  >
+                  <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${item.color} text-white shadow-[0_10px_26px_rgba(15,23,42,.18)] transition group-hover:scale-110`}>
                     <Icon size={21} />
                   </div>
                   <span className="rounded-full border border-[var(--border)] bg-[var(--card2)] px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--soft)]">
@@ -1722,12 +1827,12 @@ function AnnouncementPanel() {
                     <Clock3 size={14} className="text-[var(--soft)]" />
                     {item.time}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs font-black text-[var(--soft)] transition group-hover:translate-x-0.5">
+                  <span className="inline-flex items-center gap-1 text-xs font-black text-[var(--soft)] transition group-hover:translate-x-1">
                     Lihat
                     <ArrowRight size={14} />
                   </span>
                 </div>
-              </a>
+              </motion.a>
             );
           })}
         </div>
@@ -2120,7 +2225,22 @@ function StaffProfileModal({
 function StaffSection() {
   const roles = [
     "All",
-    ...Array.from(new Set(staff.flatMap((s) => staffRoles(s)))),
+    ...Array.from(new Set(staff.flatMap((s) => staffRoles(s)))).sort((a, b) => {
+      const order = [
+        "Founder",
+        "Archduke",
+        "Archmagister",
+        "Archmage",
+        "Head Division",
+        "Developer",
+        "Sentinel",
+        "Artemist",
+        "Arcane Ally",
+      ];
+      const idxA = order.indexOf(a);
+      const idxB = order.indexOf(b);
+      return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+    }),
   ];
   const [activeRole, setActiveRole] = useState("All");
   const [query, setQuery] = useState("");
@@ -2170,11 +2290,10 @@ function StaffSection() {
                     setActiveRole(role);
                     setShowAll(false);
                   }}
-                  className={`shrink-0 rounded-2xl px-4 py-2 text-xs font-black transition ${
-                    activeRole === role
-                      ? "bg-gradient-to-r from-violet-500 to-purple-700 text-white shadow-[0_0_24px_rgba(139,92,246,.28)]"
-                      : "bg-white/10 text-[var(--muted)] hover:text-[var(--text)]"
-                  }`}
+                  className={`shrink-0 rounded-2xl px-4 py-2 text-xs font-black transition ${activeRole === role
+                    ? "bg-gradient-to-r from-violet-500 to-purple-700 text-white shadow-[0_0_24px_rgba(139,92,246,.28)]"
+                    : "bg-white/10 text-[var(--muted)] hover:text-[var(--text)]"
+                    }`}
                 >
                   {role}
                 </button>
@@ -2329,40 +2448,16 @@ function HierarchySection() {
       desc: "Mengembangkan bot, website, sistem, dan tools teknis komunitas.",
     },
     {
-      role: "Sentinel — Penjaga Server",
+      role: "Sentinel — Server Guardian",
       icon: BadgeCheck,
       color: "from-sky-400 to-blue-500",
       desc: "Memantau aktivitas, membantu member baru, dan meredam masalah.",
-    },
-    {
-      role: "Lunaris — Public Relations",
-      icon: Handshake,
-      color: "from-pink-400 to-violet-500",
-      desc: "Menjaga relasi, nama baik server, dan membantu member baru.",
     },
     {
       role: "Artemist — Event Organizer",
       icon: Calendar,
       color: "from-rose-400 to-pink-500",
       desc: "Merancang konsep, alur, dan evaluasi event komunitas.",
-    },
-    {
-      role: "Artisant — Design Visual",
-      icon: Camera,
-      color: "from-fuchsia-400 to-pink-500",
-      desc: "Membuat poster, banner, logo, dan kebutuhan visual server.",
-    },
-    {
-      role: "Archivist — Social Management",
-      icon: Megaphone,
-      color: "from-amber-400 to-orange-500",
-      desc: "Mengelola sosial media dan konten kreatif Mystral Academy.",
-    },
-    {
-      role: "Visionary — Editor Video",
-      icon: Music2,
-      color: "from-cyan-400 to-blue-500",
-      desc: "Mengedit video agar konten terlihat rapi, hidup, dan menarik.",
     },
     {
       role: "Arcane Ally — Partnership",
@@ -2412,35 +2507,35 @@ function HierarchySection() {
 
             <div className="relative space-y-2">
               <div className="absolute bottom-6 left-[18px] top-6 w-px bg-gradient-to-b from-violet-400 via-cyan-400 to-slate-500/40" />
-            {levels.map((level, i) => {
-              const Icon = level.icon;
-              return (
-                <motion.div
-                  key={level.role}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.07 }}
-                  className="group relative flex items-center gap-3 rounded-[1rem] border border-[var(--border)] bg-[var(--card2)] p-2.5 transition hover:-translate-y-0.5 hover:border-violet-400/45"
-                >
-                  <div
-                    className={`relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${level.color} text-white shadow-[0_8px_18px_rgba(15,23,42,.18)]`}
+              {levels.map((level, i) => {
+                const Icon = level.icon;
+                return (
+                  <motion.div
+                    key={level.role}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: i * 0.07 }}
+                    className="group relative flex items-center gap-3 rounded-[1rem] border border-[var(--border)] bg-[var(--card2)] p-2.5 transition hover:-translate-y-0.5 hover:border-violet-400/45"
                   >
-                    <Icon size={14} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="truncate text-xs font-black text-[var(--text)]">
-                        @{level.role}
-                      </p>
-                      <span className="shrink-0 rounded-full border border-[var(--border)] px-2 py-0.5 text-[9px] font-black text-[var(--muted)]">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
+                    <div
+                      className={`relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${level.color} text-white shadow-[0_8px_18px_rgba(15,23,42,.18)]`}
+                    >
+                      <Icon size={14} />
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="truncate text-xs font-black text-[var(--text)]">
+                          @{level.role}
+                        </p>
+                        <span className="shrink-0 rounded-full border border-[var(--border)] px-2 py-0.5 text-[9px] font-black text-[var(--muted)]">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </Card>
 
@@ -2551,7 +2646,7 @@ function FounderProfileModal({
                   className="h-full w-full rounded-full object-cover object-center"
                 />
               ) : (
-                <div className="grid h-full w-full place-items-center rounded-full bg-[var(--bg)] text-3xl font-black text-white">
+                <div className="grid h-full w-full place-items-center rounded-full bg-slate-800/90 text-3xl font-black text-white">
                   {initialOf(founder.name)}
                 </div>
               )}
@@ -2666,7 +2761,7 @@ function FounderSection() {
                       className="h-full w-full rounded-full object-cover object-center"
                     />
                   ) : (
-                    <div className="grid h-full w-full place-items-center rounded-full bg-[var(--bg2)] text-2xl font-black text-white">
+                    <div className="grid h-full w-full place-items-center rounded-full bg-slate-800/90 text-2xl font-black text-white">
                       {initialOf(founder.name)}
                     </div>
                   )}
@@ -3015,6 +3110,13 @@ function BotSection() {
 
 function LeaderboardSection() {
   const rankEmoji = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
+  const rankGlow = [
+    "hover:shadow-[0_0_24px_rgba(251,191,36,.3)]",
+    "hover:shadow-[0_0_20px_rgba(203,213,225,.2)]",
+    "hover:shadow-[0_0_20px_rgba(251,146,60,.2)]",
+    "",
+    "",
+  ];
 
   return (
     <section
@@ -3049,10 +3151,14 @@ function LeaderboardSection() {
               </div>
             </div>
             <div className="space-y-2">
-              {leaderboardData.sponsors.map((item) => (
-                <div
+              {leaderboardData.sponsors.map((item, i) => (
+                <motion.div
                   key={item.rank}
-                  className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-white/10 px-4 py-3"
+                  initial={{ opacity: 0, x: -16 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.35, delay: i * 0.08 }}
+                  className={`flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-white/10 px-4 py-3 transition hover:-translate-y-0.5 ${rankGlow[i] ?? ""}`}
                 >
                   <span className="text-xl">{rankEmoji[item.rank - 1]}</span>
                   <p className="flex-1 font-black text-[var(--text)]">
@@ -3061,7 +3167,7 @@ function LeaderboardSection() {
                   <span className="rounded-full bg-amber-400/20 px-3 py-1 text-xs font-black text-amber-400">
                     {item.amount}
                   </span>
-                </div>
+                </motion.div>
               ))}
               <div className="rounded-2xl border border-dashed border-[var(--border)] px-4 py-3 text-center text-xs text-[var(--muted)]">
                 Posisi 2–5 masih terbuka — jadilah sponsor berikutnya! 💛
@@ -3085,10 +3191,14 @@ function LeaderboardSection() {
               </div>
             </div>
             <div className="space-y-2">
-              {leaderboardData.donators.map((item) => (
-                <div
+              {leaderboardData.donators.map((item, i) => (
+                <motion.div
                   key={item.rank}
-                  className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${item.rank <= 3 ? "border-violet-400/30 bg-violet-500/10" : "border-[var(--border)] bg-white/10"}`}
+                  initial={{ opacity: 0, x: 16 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.35, delay: i * 0.07 }}
+                  className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition hover:-translate-y-0.5 ${rankGlow[i] ?? ""} ${item.rank <= 3 ? "border-violet-400/30 bg-violet-500/10" : "border-[var(--border)] bg-white/10"}`}
                 >
                   <span className="text-xl">{rankEmoji[item.rank - 1]}</span>
                   <p className="flex-1 font-black text-[var(--text)]">
@@ -3097,7 +3207,7 @@ function LeaderboardSection() {
                   <span className="rounded-full bg-violet-400/20 px-3 py-1 text-xs font-black text-[var(--soft)]">
                     {item.amount}
                   </span>
-                </div>
+                </motion.div>
               ))}
             </div>
           </Card>
@@ -3394,6 +3504,37 @@ function RecruitmentSection() {
           desc="Kami lagi buka beberapa posisi staff. Kalau kamu tertarik dan merasa cocok, yuk daftar sekarang!"
         />
 
+        {/* Syarat umum */}
+        <Card className="mb-6">
+          <div className="text-center">
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-[var(--soft)]">
+              Syarat Umum
+            </p>
+            <h3 className="mt-2 font-serif text-2xl font-black text-[var(--text)]">
+              Sebelum daftar, cek ini dulu ya
+            </h3>
+          </div>
+          <div className="mt-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: ShieldCheck, text: "Aktif di Discord minimal 2 minggu" },
+              { icon: Heart, text: "Berdedikasi dan mau terus belajar" },
+              { icon: Users, text: "Bisa koordinasi dan kerjasama tim" },
+              {
+                icon: BadgeCheck,
+                text: "Paham dan setuju dengan rules server",
+              },
+            ].map(({ icon: Icon, text }) => (
+              <div
+                key={text}
+                className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-white/10 px-2.5 py-3"
+              >
+                <Icon size={16} className="shrink-0 text-[var(--soft)]" />
+                <p className="text-[10px] font-bold text-[var(--muted)] xl:text-xs whitespace-nowrap">{text}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {staffPositions.map((pos) => {
             const Icon = pos.icon;
@@ -3446,37 +3587,6 @@ function RecruitmentSection() {
             );
           })}
         </div>
-
-        {/* Syarat umum */}
-        <Card className="mt-6">
-          <div className="text-center">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-[var(--soft)]">
-              Syarat Umum
-            </p>
-            <h3 className="mt-2 font-serif text-2xl font-black text-[var(--text)]">
-              Sebelum daftar, cek ini dulu ya
-            </h3>
-          </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: ShieldCheck, text: "Aktif di Discord minimal 2 minggu" },
-              { icon: Heart, text: "Berdedikasi dan mau terus belajar" },
-              { icon: Users, text: "Bisa koordinasi dan kerja bareng tim" },
-              {
-                icon: BadgeCheck,
-                text: "Paham dan setuju dengan rules server",
-              },
-            ].map(({ icon: Icon, text }) => (
-              <div
-                key={text}
-                className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-white/10 p-4"
-              >
-                <Icon size={18} className="shrink-0 text-[var(--soft)]" />
-                <p className="text-sm text-[var(--muted)]">{text}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
       </div>
     </section>
   );
@@ -3491,20 +3601,23 @@ const defaultComments: MemberComment[] = [
     id: 1,
     name: "Starlight_",
     message: "Servernya rapi, staffnya aktif, dan vibes-nya nyaman banget.",
-    time: "2 jam lalu",
+    time: "2026-05-09T19:54:59.145Z",
+    createdAt: "2026-05-09T19:54:59.145Z",
   },
   {
     id: 2,
     name: "MoonWalker",
     message:
       "Aku suka karena bisa aktif ataupun jadi silent reader tetap diterima.",
-    time: "5 jam lalu",
+    time: "2026-05-09T16:54:59.145Z",
+    createdAt: "2026-05-09T16:54:59.145Z",
   },
   {
     id: 3,
     name: "DreamyCloud",
     message: "Fitur role, event, dan community system-nya keren banget.",
-    time: "1 hari lalu",
+    time: "2026-05-08T21:54:59.145Z",
+    createdAt: "2026-05-08T21:54:59.145Z",
   },
 ];
 
@@ -3618,26 +3731,28 @@ function Testimonials() {
           </div>
 
           <div className="mt-7 rounded-[1.35rem] border border-[var(--border)] bg-[var(--card2)] p-4">
-            <div className="grid gap-3 md:grid-cols-[220px_1fr_auto]">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Nama kamu"
-                className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--text)] outline-none placeholder:text-[var(--muted)]"
-              />
-              <input
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Tulis komentar kamu..."
-                className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--text)] outline-none placeholder:text-[var(--muted)]"
-              />
+            <div className="flex flex-col gap-3">
+              <div className="grid gap-3 sm:grid-cols-[200px_1fr]">
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Nama kamu"
+                  className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--text)] outline-none placeholder:text-[var(--muted)] focus:border-violet-400/50 transition"
+                />
+                <input
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Tulis komentar kamu..."
+                  className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--text)] outline-none placeholder:text-[var(--muted)] focus:border-violet-400/50 transition"
+                />
+              </div>
               <button
                 onClick={submitComment}
                 disabled={loading}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-700 px-6 py-3 text-sm font-black text-white shadow-[0_12px_28px_rgba(79,70,229,.28)] disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-700 px-6 py-3.5 text-sm font-black text-white shadow-[0_12px_28px_rgba(79,70,229,.28)] transition hover:scale-[1.02] hover:shadow-[0_16px_36px_rgba(79,70,229,.38)] disabled:opacity-60 active:scale-[0.98] sm:w-auto sm:self-end"
               >
                 {!loading && <Send size={15} />}
-                {loading ? "Mengirim..." : "Kirim"}
+                {loading ? "Mengirim..." : "Kirim Komentar"}
               </button>
             </div>
           </div>
@@ -3711,7 +3826,12 @@ function FAQSection() {
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,transparent,rgba(99,102,241,.08),transparent)]" />
 
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-        <div>
+        <motion.div
+          initial={{ opacity: 0, x: -24 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        >
           <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--soft)]">
             FAQ
           </p>
@@ -3723,7 +3843,7 @@ function FAQSection() {
             role, pendaftaran staff, support server, dan rules utama.
           </p>
 
-          <div className="mt-6 rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5">
+          <div className="mt-6 rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5 transition hover:border-violet-400/30">
             <div className="flex items-center gap-3">
               <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white">
                 <CircleHelp size={20} />
@@ -3739,43 +3859,57 @@ function FAQSection() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <Card className="p-3 md:p-4">
-          <div className="space-y-3">
-            {faqItems.map((item, index) => {
-              const isOpen = openIndex === index;
-              return (
-                <div
-                  key={item.question}
-                  className="overflow-hidden rounded-[1.2rem] border border-[var(--border)] bg-[var(--card2)]"
-                >
-                  <button
-                    onClick={() => setOpenIndex(isOpen ? -1 : index)}
-                    className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left"
+        <motion.div
+          initial={{ opacity: 0, x: 24 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <Card className="p-3 md:p-4">
+            <div className="space-y-3">
+              {faqItems.map((item, index) => {
+                const isOpen = openIndex === index;
+                return (
+                  <div
+                    key={item.question}
+                    className="overflow-hidden rounded-[1.2rem] border border-[var(--border)] bg-[var(--card2)] transition hover:border-violet-400/25"
                   >
-                    <span className="text-sm font-black leading-6 text-[var(--text)] md:text-base">
-                      {item.question}
-                    </span>
-                    <ChevronDown
-                      size={18}
-                      className={`shrink-0 text-[var(--soft)] transition ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  {isOpen && (
-                    <div className="border-t border-[var(--border)] px-4 pb-4 pt-3">
-                      <p className="text-sm leading-7 text-[var(--muted)]">
-                        {item.answer}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </Card>
+                    <button
+                      onClick={() => setOpenIndex(isOpen ? -1 : index)}
+                      className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left"
+                    >
+                      <span className="text-sm font-black leading-6 text-[var(--text)] md:text-base">
+                        {item.question}
+                      </span>
+                      <motion.div
+                        animate={{ rotate: isOpen ? 180 : 0 }}
+                        transition={{ duration: 0.22, ease: "easeInOut" }}
+                        className="shrink-0"
+                      >
+                        <ChevronDown size={18} className="text-[var(--soft)]" />
+                      </motion.div>
+                    </button>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                        className="border-t border-[var(--border)] px-4 pb-4 pt-3"
+                      >
+                        <p className="text-sm leading-7 text-[var(--muted)]">
+                          {item.answer}
+                        </p>
+                      </motion.div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        </motion.div>
       </div>
     </section>
   );
@@ -3805,37 +3939,43 @@ function GallerySection() {
             </div>
             <button
               onClick={() => setShowAllGallery((value) => !value)}
-              className="rounded-2xl bg-gradient-to-r from-violet-500 to-purple-700 px-5 py-3 text-sm font-black text-white"
+              className="rounded-2xl bg-gradient-to-r from-violet-500 to-purple-700 px-5 py-3 text-sm font-black text-white transition hover:scale-[1.03] hover:shadow-[0_0_24px_rgba(139,92,246,.3)] active:scale-[0.98]"
             >
               {showAllGallery ? "Tampilkan Sedikit" : "Lihat Semua Galeri"}
             </button>
           </div>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {displayedGallery.map((item) => (
-              <div
+          <div className="mt-6 grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+            {displayedGallery.map((item, i) => (
+              <motion.div
                 key={item.title}
-                className="group relative aspect-[4/3] overflow-hidden rounded-3xl border border-[var(--border)] shadow-[0_14px_34px_rgba(15,23,42,.1)]"
+                initial={{ opacity: 0, scale: 0.94 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.4, delay: (i % 4) * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-[var(--border)] shadow-[0_14px_34px_rgba(15,23,42,.1)] sm:rounded-3xl"
               >
                 {item.image ? (
                   <Image
                     src={item.image}
                     alt={item.title}
-                    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
                   />
                 ) : (
                   <div className={`absolute inset-0 bg-gradient-to-br ${item.color}`} />
                 )}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,.24),transparent_42%),linear-gradient(180deg,transparent,rgba(0,0,0,.62))]" />
-                <div className="relative flex h-full items-end p-5">
-                  <div className="rounded-2xl bg-black/25 px-4 py-2 backdrop-blur-xl">
-                    <p className="text-sm font-black text-white">{item.title}</p>
-                    <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+                {/* Overlay on hover */}
+                <div className="absolute inset-0 bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="relative flex h-full items-end p-3 sm:p-5">
+                  <div className="rounded-xl bg-black/25 px-3 py-1.5 backdrop-blur-xl sm:rounded-2xl sm:px-4 sm:py-2">
+                    <p className="text-xs font-black text-white sm:text-sm">{item.title}</p>
+                    <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-white/70 sm:text-[10px]">
                       {item.label}
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </Card>
@@ -3851,8 +3991,8 @@ function Footer() {
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_100%,rgba(139,92,246,.12),transparent)]" />
 
       {/* Top section */}
-      <div className="mx-auto max-w-7xl px-4 pt-16 lg:px-10">
-        <div className="mb-12 grid gap-10 lg:grid-cols-[1.5fr_1fr_1fr]">
+      <div className="mx-auto max-w-7xl px-4 pt-14 lg:px-10">
+        <div className="mb-10 grid gap-8 sm:gap-10 lg:grid-cols-[1.5fr_1fr_1fr]">
           {/* Brand */}
           <div>
             <Logo />
@@ -3865,7 +4005,7 @@ function Footer() {
                 href={discordUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="grid h-10 w-10 place-items-center rounded-2xl border border-[var(--border)] bg-white/10 text-[var(--muted)] transition hover:text-[var(--soft)]"
+                className="group grid h-10 w-10 place-items-center rounded-2xl border border-[var(--border)] bg-white/10 text-[var(--muted)] transition hover:-translate-y-0.5 hover:border-violet-400/40 hover:text-[var(--soft)]"
               >
                 <MessageCircle size={17} />
               </a>
@@ -3873,7 +4013,7 @@ function Footer() {
                 href={tiktokUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="grid h-10 w-10 place-items-center rounded-2xl border border-[var(--border)] bg-white/10 text-[var(--muted)] transition hover:text-[var(--soft)]"
+                className="group grid h-10 w-10 place-items-center rounded-2xl border border-[var(--border)] bg-white/10 text-[var(--muted)] transition hover:-translate-y-0.5 hover:border-pink-400/40 hover:text-[var(--soft)]"
               >
                 <Music2 size={17} />
               </a>
@@ -3881,7 +4021,7 @@ function Footer() {
                 href={discordUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="grid h-10 w-10 place-items-center rounded-2xl border border-[var(--border)] bg-white/10 text-[var(--muted)] transition hover:text-[var(--soft)]"
+                className="group grid h-10 w-10 place-items-center rounded-2xl border border-[var(--border)] bg-white/10 text-[var(--muted)] transition hover:-translate-y-0.5 hover:border-violet-400/40 hover:text-[var(--soft)]"
               >
                 <Camera size={17} />
               </a>
@@ -3893,12 +4033,12 @@ function Footer() {
             <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-[var(--soft)]">
               Navigasi
             </p>
-            <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3">
               {nav.map((item) => (
                 <a
                   key={item.label}
                   href={item.href}
-                  className="block text-sm text-[var(--muted)] transition hover:text-[var(--text)]"
+                  className="block text-sm text-[var(--muted)] transition hover:translate-x-0.5 hover:text-[var(--text)]"
                 >
                   {item.label}
                 </a>
@@ -3950,6 +4090,281 @@ function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+/* ───────────────────────────── Fantasy Ambient Player ───────────────────────────── */
+
+type AmbientTrack = {
+  name: string;
+  url: string;
+  icon: typeof Music2;
+  description: string;
+};
+
+const ambientPlaylist: AmbientTrack[] = [
+  {
+    name: "Mystic Harp Ambient",
+    url: "/harp.mp3",
+    icon: Music2,
+    description: "Alunan harpa fantasi tenang yang membangkitkan fokus dan imajinasi.",
+  },
+  {
+    name: "Rainy Castle Library",
+    url: "/rain.mp3",
+    icon: Calendar,
+    description: "Rintik hujan lembut di luar jendela perpustakaan kastil akademi.",
+  },
+  {
+    name: "Cozy Hearth Ambient",
+    url: "/campfire.mp3",
+    icon: Sun,
+    description: "Suara perapian hangat berderak lembut di ruang rekreasi Mystral.",
+  },
+];
+
+function FantasyAmbientPlayer() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [volume, setVolume] = useState(0.4);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const activeTrack = ambientPlaylist[currentTrackIndex];
+
+  // Inisialisasi audio element sekali saja saat mount
+  useEffect(() => {
+    const audio = new Audio(activeTrack.url);
+    audio.loop = true;
+    audio.volume = isMuted ? 0 : volume;
+    audioRef.current = audio;
+
+    return () => {
+      audio.pause();
+    };
+  }, []);
+
+  // Ketika track berubah, ganti src dari audio element yang sama
+  useEffect(() => {
+    if (!audioRef.current) return;
+
+    const wasPlaying = isPlaying;
+
+    audioRef.current.pause();
+    audioRef.current.src = activeTrack.url;
+    audioRef.current.load();
+
+    if (wasPlaying) {
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch((err) => {
+        console.log("Play blocked on track change:", err);
+        setIsPlaying(false);
+      });
+    }
+  }, [currentTrackIndex]);
+
+  // Mengubah volume & mute status audio
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
+    }
+  }, [volume, isMuted]);
+
+  // Mengontrol play/pause
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch((err) => {
+        console.log("Audio play blocked:", err);
+      });
+    }
+  };
+
+  // Mengontrol mute/unmute
+  const toggleMute = () => {
+    if (!audioRef.current) return;
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+  };
+
+  // Mengubah volume slider
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    setVolume(val);
+    setIsMuted(val === 0);
+  };
+
+  // Mengganti track berikutnya
+  const handleNext = () => {
+    setCurrentTrackIndex((prev) => (prev + 1) % ambientPlaylist.length);
+  };
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+      {/* Jendela Utama Player */}
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="mb-3 w-72 rounded-[1.6rem] border border-[var(--border)] bg-[var(--card)] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] backdrop-blur-xl transition-all"
+        >
+          <div className="flex items-center justify-between border-b border-[var(--border)] pb-2.5">
+            <div className="flex items-center gap-2">
+              <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-violet-500/10 text-[var(--soft)]">
+                <Music size={16} />
+                {isPlaying && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent2)] opacity-75"></span>
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[var(--accent2)]"></span>
+                  </span>
+                )}
+              </div>
+              <div className="text-left">
+                <h4 className="text-xs font-black uppercase tracking-wider text-[var(--text)]">
+                  Ambient Player
+                </h4>
+                <p className="text-[10px] text-[var(--muted)]">Mystral Academy</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="grid h-7 w-7 place-items-center rounded-lg border border-[var(--border)] bg-white/5 text-[var(--muted)] hover:text-[var(--text)] transition"
+            >
+              <X size={14} />
+            </button>
+          </div>
+
+          {/* Album Art & Track Info */}
+          <div className="py-4 text-center">
+            <div className="mx-auto relative mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-violet-500 to-indigo-700 shadow-lg text-white">
+              <activeTrack.icon
+                size={24}
+                className={`${isPlaying ? "animate-spin [animation-duration:8s]" : ""}`}
+              />
+              {isPlaying && (
+                <div className="absolute inset-0 -z-10 animate-ping rounded-full bg-violet-500/35 [animation-duration:2.5s]" />
+              )}
+            </div>
+            <h5 className="text-sm font-black text-[var(--text)] truncate">
+              {activeTrack.name}
+            </h5>
+            <p className="mt-1 text-[11px] text-[var(--muted)] line-clamp-2 px-2 leading-relaxed">
+              {activeTrack.description}
+            </p>
+          </div>
+
+          {/* Tombol Kontrol */}
+          <div className="flex items-center justify-center gap-4 border-t border-[var(--border)] pt-3.5">
+            <button
+              onClick={toggleMute}
+              className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--border)] bg-white/5 text-[var(--muted)] hover:text-[var(--text)] transition"
+              title={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            </button>
+
+            <button
+              onClick={togglePlay}
+              className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-r from-violet-500 to-purple-700 text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:scale-105 transition duration-200"
+              title={isPlaying ? "Pause" : "Play"}
+            >
+              {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
+            </button>
+
+            <button
+              onClick={handleNext}
+              className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--border)] bg-white/5 text-[var(--muted)] hover:text-[var(--text)] transition"
+              title="Next Ambience"
+            >
+              <SkipForward size={16} />
+            </button>
+          </div>
+
+          {/* Volume Slider */}
+          <div className="mt-3.5 flex items-center gap-2 px-1">
+            <span className="text-[10px] font-bold text-[var(--muted)]">Vol</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={isMuted ? 0 : volume}
+              onChange={handleVolumeChange}
+              className="h-1 w-full cursor-pointer appearance-none rounded-lg bg-[var(--border)] accent-[var(--soft)]"
+            />
+          </div>
+        </motion.div>
+      )}
+
+      {/* Tombol Toggle Bulat Melayang */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--card)] text-[var(--text)] shadow-[0_12px_40px_rgba(0,0,0,0.25)] backdrop-blur-xl transition hover:-translate-y-1 hover:border-violet-400/40 hover:shadow-[0_8px_24px_rgba(139,92,246,0.25)] focus:outline-none"
+        aria-label="Toggle ambient player"
+      >
+        <div className="relative flex items-center justify-center">
+          {isPlaying ? (
+            <svg
+              className="h-6 w-6 text-[var(--soft)]"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <rect x="3" y="10" width="3" height="4" rx="1.5">
+                <animate
+                  attributeName="height"
+                  values="4;16;4"
+                  dur="1.2s"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="y"
+                  values="10;4;10"
+                  dur="1.2s"
+                  repeatCount="indefinite"
+                />
+              </rect>
+              <rect x="9" y="6" width="3" height="12" rx="1.5">
+                <animate
+                  attributeName="height"
+                  values="12;20;12"
+                  dur="1s"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="y"
+                  values="6;2;6"
+                  dur="1s"
+                  repeatCount="indefinite"
+                />
+              </rect>
+              <rect x="15" y="11" width="3" height="5" rx="1.5">
+                <animate
+                  attributeName="height"
+                  values="5;15;5"
+                  dur="1.4s"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="y"
+                  values="11;5;11"
+                  dur="1.4s"
+                  repeatCount="indefinite"
+                />
+              </rect>
+            </svg>
+          ) : (
+            <Music2 size={24} className="text-[var(--muted)]" />
+          )}
+        </div>
+      </button>
+    </div>
   );
 }
 
@@ -4010,6 +4425,9 @@ export default function HomePage() {
         <FAQSection />
         <GallerySection />
         <Footer />
+        <FantasyAmbientPlayer />
+
+
       </div>
     </main>
   );
