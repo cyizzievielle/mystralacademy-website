@@ -486,7 +486,7 @@ const faqItems = [
 const staff: StaffMember[] = [
   {
     name: "Arin",
-    role: "Archduke",
+    role: "The Empress",
     color: "from-purple-300 to-pink-300",
   },
   {
@@ -2261,7 +2261,7 @@ function StaffSection() {
     ...Array.from(new Set(staff.flatMap((s) => staffRoles(s)))).sort((a, b) => {
       const order = [
         "Founder",
-        "Archduke",
+        "The Empress",
         "Archmagister",
         "Archmage",
         "Head Division",
@@ -2451,7 +2451,7 @@ function StaffSection() {
 function HierarchySection() {
   const levels = [
     {
-      role: "Archduke — Owner",
+      role: "The Empress — Owner",
       icon: Crown,
       color: "from-violet-500 to-fuchsia-600",
       desc: "Menentukan arah, konsep, tema, dan tujuan server.",
