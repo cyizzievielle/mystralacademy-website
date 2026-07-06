@@ -1527,6 +1527,33 @@ function HeroMockup() {
 }
 
 function Hero() {
+  const [memberCount, setMemberCount] = useState("6,5K");
+  const [onlineCount, setOnlineCount] = useState("1.4K+");
+
+  useEffect(() => {
+    fetch("https://discord.com/api/v10/invites/mystralacademy?with_counts=true")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.approximate_member_count) {
+          const members = data.approximate_member_count;
+          if (members >= 1000) {
+            setMemberCount(((members / 1000).toFixed(1)).replace(".", ",") + "K");
+          } else {
+            setMemberCount(members.toString());
+          }
+        }
+        if (data.approximate_presence_count) {
+          const online = data.approximate_presence_count;
+          if (online >= 1000) {
+            setOnlineCount(((online / 1000).toFixed(1)).replace(".", ",") + "K+");
+          } else {
+            setOnlineCount(online.toString() + "+");
+          }
+        }
+      })
+      .catch((err) => console.error("Failed to fetch Discord member count", err));
+  }, []);
+
   return (
     <section
       id="home"
@@ -1605,7 +1632,7 @@ function Hero() {
                 <Avatar key={f.name} name={f.name} small />
               ))}
               <div className="grid h-8 w-14 place-items-center rounded-full bg-white/15 text-xs font-black text-[var(--text)] ring-2 ring-[var(--bg)]">
-                +6.5K
+                +{memberCount}
               </div>
             </div>
             <p className="text-sm font-bold text-[var(--muted)]">
@@ -1626,6 +1653,12 @@ function Hero() {
       <div className="mx-auto mt-8 grid max-w-7xl grid-cols-2 gap-3 md:-mt-8 md:grid-cols-4">
         {stats.map((stat, i) => {
           const Icon = stat.icon;
+          let displayValue = stat.value;
+          if (stat.label === "Members") {
+            displayValue = memberCount;
+          } else if (stat.label === "Online Daily") {
+            displayValue = onlineCount;
+          }
           return (
             <motion.div
               key={stat.label}
@@ -1639,7 +1672,7 @@ function Hero() {
               </div>
               <div className="min-w-0">
                 <p className="text-lg font-black leading-none text-[var(--text)] sm:text-2xl">
-                  <AnimatedCounter value={stat.value} />
+                  <AnimatedCounter value={displayValue} />
                 </p>
                 <p className="mt-1 truncate text-[9px] text-[var(--muted)] sm:text-xs">
                   {stat.label}
@@ -4104,22 +4137,34 @@ type AmbientTrack = {
 
 const ambientPlaylist: AmbientTrack[] = [
   {
-    name: "Mystic Harp Ambient",
-    url: "/harp.mp3",
+    name: "Show Me How - Men I Trust",
+    url: "/Men I Trust - Show Me How [1bDuNZpIFOw].mp3",
     icon: Music2,
-    description: "Alunan harpa fantasi tenang yang membangkitkan fokus dan imajinasi.",
+    description: "Lagu santai dari Men I Trust untuk menemani aktivitas Anda di Mystral.",
   },
   {
-    name: "Rainy Castle Library",
-    url: "/rain.mp3",
-    icon: Calendar,
-    description: "Rintik hujan lembut di luar jendela perpustakaan kastil akademi.",
+    name: "Risk - Lace",
+    url: "/risk-lace.mp3",
+    icon: Music2,
+    description: "Alunan melodi indie pop yang ceria dan menenangkan.",
   },
   {
-    name: "Cozy Hearth Ambient",
-    url: "/campfire.mp3",
-    icon: Sun,
-    description: "Suara perapian hangat berderak lembut di ruang rekreasi Mystral.",
+    name: "Space Song - Beach House",
+    url: "/Beach House - Space Song.mp3",
+    icon: Music2,
+    description: "Lagu legendaris dari Beach House dengan nuansa dream-pop yang magis.",
+  },
+  {
+    name: "Fade Into You - Mazzy Star",
+    url: "/Fade Into You [avv2IIdDnnk].mp3",
+    icon: Music2,
+    description: "Nuansa syahdu dan hangat dari Mazzy Star.",
+  },
+  {
+    name: "Fourth of July - Sufjan Stevens",
+    url: "/Sufjan Stevens - Fourth of July.mp3",
+    icon: Music2,
+    description: "Melodi emosional dan syahdu dari Sufjan Stevens.",
   },
 ];
 
@@ -4129,6 +4174,8 @@ function FantasyAmbientPlayer() {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [volume, setVolume] = useState(0.4);
   const [isMuted, setIsMuted] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const activeTrack = ambientPlaylist[currentTrackIndex];
@@ -4136,11 +4183,33 @@ function FantasyAmbientPlayer() {
   // Inisialisasi audio element sekali saja saat mount
   useEffect(() => {
     const audio = new Audio(activeTrack.url);
-    audio.loop = true;
     audio.volume = isMuted ? 0 : volume;
     audioRef.current = audio;
 
+    const handleTimeUpdate = () => {
+      if (audioRef.current) {
+        setCurrentTime(audioRef.current.currentTime);
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      if (audioRef.current) {
+        setDuration(audioRef.current.duration);
+      }
+    };
+
+    const handleEnded = () => {
+      handleNext();
+    };
+
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("ended", handleEnded);
+
     return () => {
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("ended", handleEnded);
       audio.pause();
     };
   }, []);
@@ -4154,6 +4223,8 @@ function FantasyAmbientPlayer() {
     audioRef.current.pause();
     audioRef.current.src = activeTrack.url;
     audioRef.current.load();
+    setCurrentTime(0);
+    setDuration(0);
 
     if (wasPlaying) {
       audioRef.current.play().then(() => {
@@ -4201,9 +4272,25 @@ function FantasyAmbientPlayer() {
     setIsMuted(val === 0);
   };
 
+  // Mengubah progress slider
+  const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!audioRef.current) return;
+    const newTime = parseFloat(e.target.value);
+    audioRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
   // Mengganti track berikutnya
   const handleNext = () => {
     setCurrentTrackIndex((prev) => (prev + 1) % ambientPlaylist.length);
+  };
+
+  // Memformat waktu (detik -> mm:ss)
+  const formatTime = (secs: number) => {
+    if (isNaN(secs) || secs === 0) return "0:00";
+    const minutes = Math.floor(secs / 60);
+    const seconds = Math.floor(secs % 60);
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
   return (
@@ -4255,50 +4342,68 @@ function FantasyAmbientPlayer() {
             <h5 className="text-sm font-black text-[var(--text)] truncate">
               {activeTrack.name}
             </h5>
-            <p className="mt-1 text-[11px] text-[var(--muted)] line-clamp-2 px-2 leading-relaxed">
-              {activeTrack.description}
-            </p>
           </div>
 
           {/* Tombol Kontrol */}
-          <div className="flex items-center justify-center gap-4 border-t border-[var(--border)] pt-3.5">
-            <button
-              onClick={toggleMute}
-              className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--border)] bg-white/5 text-[var(--muted)] hover:text-[var(--text)] transition"
-              title={isMuted ? "Unmute" : "Mute"}
-            >
-              {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
+          <div className="flex flex-col gap-3.5 border-t border-[var(--border)] pt-3.5">
+            <div className="flex items-center justify-center gap-4">
+              <button
+                onClick={toggleMute}
+                className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--border)] bg-white/5 text-[var(--muted)] hover:text-[var(--text)] transition"
+                title={isMuted ? "Unmute" : "Mute"}
+              >
+                {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              </button>
 
-            <button
-              onClick={togglePlay}
-              className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-r from-violet-500 to-purple-700 text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:scale-105 transition duration-200"
-              title={isPlaying ? "Pause" : "Play"}
-            >
-              {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
-            </button>
+              <button
+                onClick={togglePlay}
+                className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-r from-violet-500 to-purple-700 text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:scale-105 transition duration-200"
+                title={isPlaying ? "Pause" : "Play"}
+              >
+                {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
+              </button>
 
-            <button
-              onClick={handleNext}
-              className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--border)] bg-white/5 text-[var(--muted)] hover:text-[var(--text)] transition"
-              title="Next Ambience"
-            >
-              <SkipForward size={16} />
-            </button>
+              <button
+                onClick={handleNext}
+                className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--border)] bg-white/5 text-[var(--muted)] hover:text-[var(--text)] transition"
+                title="Next Ambience"
+              >
+                <SkipForward size={16} />
+              </button>
+            </div>
+
+            {/* Slider Volume Kecil */}
+            <div className="flex items-center justify-center gap-2 px-4">
+              <span className="text-[9px] font-black uppercase tracking-wider text-[var(--muted)]">Vol</span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={isMuted ? 0 : volume}
+                onChange={handleVolumeChange}
+                className="h-1 w-24 cursor-pointer appearance-none rounded-lg bg-[var(--border)] accent-[var(--soft)]"
+              />
+              <span className="text-[9px] font-bold text-[var(--muted)] min-w-[24px]">
+                {Math.round((isMuted ? 0 : volume) * 100)}%
+              </span>
+            </div>
           </div>
 
-          {/* Volume Slider */}
-          <div className="mt-3.5 flex items-center gap-2 px-1">
-            <span className="text-[10px] font-bold text-[var(--muted)]">Vol</span>
+          {/* Progress Timeline Lagu di Bagian Bawah */}
+          <div className="mt-4 px-1 border-t border-[var(--border)] pt-3">
             <input
               type="range"
               min="0"
-              max="1"
-              step="0.05"
-              value={isMuted ? 0 : volume}
-              onChange={handleVolumeChange}
+              max={duration || 100}
+              value={currentTime}
+              onChange={handleProgressChange}
               className="h-1 w-full cursor-pointer appearance-none rounded-lg bg-[var(--border)] accent-[var(--soft)]"
             />
+            <div className="mt-1 flex items-center justify-between text-[9px] font-bold text-[var(--muted)]">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
           </div>
         </motion.div>
       )}
